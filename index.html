@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>LLM Model Lab｜大型語言模型選型實驗室</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  --bg:#EEF2F1; --surface:#FFFFFF; --surface-2:#E3E9E8; --ink:#15252B; --ink-2:#516268; --line:#C6D1D0;
+  --accent:#B96F0E; --accent-bg:#F7E9D3; --blue:#2B67A8; --blue-bg:#E1EBF6; --green:#2C7651; --green-bg:#DFEFE5;
+  --purple:#6A4FA0; --purple-bg:#ECE6F5; --red:#AE3829; --red-bg:#F6E1DD;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box} html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans)}
+button,input,select,textarea{font:inherit} button{cursor:pointer} [hidden]{display:none!important}
+body{font-size:24px;line-height:1.45}.shell{max-width:1600px;margin:auto;padding:0 30px 50px}
+.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 94%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding-top:12px}
+.brandrow{display:flex;align-items:center;gap:18px;justify-content:space-between}.brand{font-weight:900;font-size:26px;letter-spacing:.02em}.userbox{display:flex;gap:12px;align-items:center;font-size:24px;color:var(--ink-2)}
+.budget-pill{font-family:var(--mono);font-weight:600;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 10px}
+.course-nav{display:grid;gap:0;padding-top:10px}
+.main-nav{display:flex;gap:6px;overflow-x:auto;border-bottom:1px solid var(--line)}
+.main-nav button{border:0;background:none;color:var(--ink-2);font-weight:900;padding:9px 15px;border-bottom:4px solid transparent;white-space:nowrap;font-size:22px}
+.main-nav button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.sub-nav-wrap{min-height:50px;display:flex;align-items:center}
+.sub-nav{display:none;gap:5px;overflow-x:auto;width:100%;padding:6px 0}
+.sub-nav.active{display:flex}
+.sub-nav button{border:0;background:none;color:var(--ink-2);font-weight:700;padding:6px 11px;border-radius:8px;white-space:nowrap;font-size:20px}
+.sub-nav button:hover{background:var(--surface-2);color:var(--ink)}
+.sub-nav button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.chapter-no{font-family:var(--mono);opacity:.65;margin-right:5px}
+
+main{padding-top:28px}.panel{display:none}.panel.active{display:block}.head{display:grid;gap:8px;margin-bottom:24px}.eyebrow{font-family:var(--mono);color:var(--accent);font-weight:600;letter-spacing:.05em}.head h1{font-size:clamp(32px,4vw,58px);line-height:1.13;margin:0;max-width:18ch}.lead{font-size:26px;color:var(--ink-2);max-width:70ch;margin:0}.grid{display:grid;gap:18px}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
+.card{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:22px}.card h2,.card h3{margin:0 0 8px}.card p{margin:0;color:var(--ink-2)}.tag{display:inline-flex;border-radius:999px;padding:3px 10px;font-weight:800;font-size:24px;background:var(--surface-2);margin-bottom:10px}
+.big{font-size:30px;font-weight:900;line-height:1.2}.mono{font-family:var(--mono)}.accent{color:var(--accent)}.blue{color:var(--blue)}.green{color:var(--green)}.purple{color:var(--purple)}
+.scenario-row{display:grid;grid-template-columns:1fr 1fr;gap:18px}.scenario{border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:18px}.scenario select{width:100%;margin-top:10px;padding:10px;border:2px solid var(--line);border-radius:10px;background:var(--surface)}
+.result-callout{border-radius:14px;background:var(--ink);color:var(--bg);padding:20px 22px;display:grid;gap:8px}.result-callout b{font-size:26px}.employee{position:relative;overflow:hidden}.employee:before{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:var(--surface-2)}.employee .salary{font-family:var(--mono);font-size:24px;color:var(--ink-2);margin-top:12px}.employee ul{padding-left:20px;margin:10px 0 0}
+.triangle-wrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:24px}.complexity-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}.complexity-card{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:8px;align-content:start}.complexity-card .lvl{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--accent)}.complexity-card h3{font-size:28px;margin:0}.complexity-card p{font-size:24px;margin:0;color:var(--ink-2)}.complexity-card .eg{border-top:1px solid var(--line);padding-top:8px;color:var(--ink);font-weight:700}.complexity-card.active{border-color:var(--accent);background:var(--accent-bg)}.complexity-detail{display:grid;grid-template-columns:.75fr 1.25fr;gap:20px}.controlbox{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:22px;display:grid;gap:18px}.range-row label{display:flex;justify-content:space-between;font-weight:800}.range-row input{width:100%}.level-dots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.level-dots button{border:2px solid var(--line);background:var(--surface);border-radius:12px;padding:12px;font-weight:900}.level-dots button.active{border-color:var(--accent);background:var(--accent-bg)}
+.meters{display:grid;gap:14px}.meter{display:grid;grid-template-columns:110px 1fr 72px;gap:12px;align-items:center}.meter .track{height:16px;border-radius:999px;background:var(--surface-2);overflow:hidden}.meter .fill{height:100%;border-radius:999px;transition:width .25s}.fill.q{background:var(--green)}.fill.s{background:var(--blue)}.fill.c{background:var(--accent)}
+.note{font-size:24px;color:var(--ink-2)}.lab-layout{display:grid;grid-template-columns:340px minmax(0,1fr);gap:22px}.sidebar{display:grid;gap:14px;align-content:start}.box{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:18px}.box h3{margin:0 0 10px}.field{display:grid;gap:6px;margin-bottom:12px}.field label{font-weight:800;font-size:24px}.field select,.field input,.field textarea{width:100%;padding:9px 10px;border:2px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)}
+.task-list{display:grid;gap:8px}.task-btn{width:100%;text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px}.task-btn.active{border-color:var(--accent);background:var(--accent-bg)}.task-btn b{display:block}.task-btn small{display:block;margin-top:4px}.task-btn:nth-child(5){grid-column:1/-1}.task-btn small{color:var(--ink-2);font-size:24px}
+.workspace{display:grid;gap:16px}.task-head{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}.task-head h2{margin:0}.question-nav{display:flex;gap:6px;flex-wrap:wrap}.question-nav button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 10px}.question-nav button.active{background:var(--ink);color:var(--bg)}
+.promptbox{white-space:pre-wrap;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:18px;min-height:170px}.runbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}.btn{border:2px solid var(--ink);background:var(--ink);color:var(--bg);border-radius:10px;padding:10px 16px;font-weight:900}.btn.secondary{background:var(--surface);color:var(--ink);border-color:var(--line)}.btn:disabled{opacity:.4;cursor:not-allowed}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px}.stat .k{font-size:24px;color:var(--ink-2);text-transform:uppercase}.stat .v{font-family:var(--mono);font-size:26px;font-weight:600}.answer{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:18px;white-space:pre-wrap;min-height:140px}.answer.loading{color:var(--ink-2)}
+.login-overlay{position:fixed;inset:0;z-index:100;background:rgba(15,24,27,.72);display:grid;place-items:center;padding:24px}.login-card{width:min(520px,100%);background:var(--surface);border-radius:18px;padding:28px;border:2px solid var(--line);box-shadow:0 25px 80px rgba(0,0,0,.3)}.login-card h1{margin:0 0 6px;font-size:34px}.login-card p{color:var(--ink-2)}.login-card input{width:100%;padding:12px;border:2px solid var(--line);border-radius:10px;margin:8px 0 12px}.login-error{color:var(--red);font-weight:700;min-height:1.5em}
+.toast{position:fixed;right:20px;bottom:20px;background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:10px;z-index:200;max-width:420px}.quota{display:grid;gap:5px}.quota-track{height:10px;background:var(--surface-2);border-radius:999px;overflow:hidden}.quota-fill{height:100%;background:var(--accent);width:0}
+@media(max-width:1000px){.g3,.g2,.triangle-wrap,.lab-layout,.scenario-row,.complexity-detail{grid-template-columns:1fr}.complexity-grid{grid-template-columns:1fr 1fr}.stats{grid-template-columns:repeat(2,1fr)}.sidebar{grid-template-columns:1fr 1fr}.shell{padding-inline:18px}}
+@media(max-width:650px){body{font-size:24px}.complexity-grid{grid-template-columns:1fr}.sidebar{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.userbox{display:none}.head h1{font-size:36px}}
+
+/* projection-safe lab pages */
+.lab-config{display:grid;grid-template-columns:1.05fr .95fr;gap:22px;align-items:start}
+.compact-task-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.compact-task-list .task-btn{min-height:92px}
+.lab-actions{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-top:14px}
+.result-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:22px;align-items:start}
+.metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.metric-card{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:16px}
+.metric-card .k{color:var(--ink-2);font-size:24px}.metric-card .v{font-family:var(--mono);font-size:30px;font-weight:700}
+.answer-projection{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:18px;white-space:pre-wrap;font-size:24px;line-height:1.45;min-height:340px;max-height:440px;overflow:hidden}
+.history-pager{display:flex;justify-content:space-between;align-items:center;margin-top:14px}
+.tool-badge{display:inline-flex;padding:3px 10px;border-radius:999px;background:var(--purple-bg);color:var(--purple);font-weight:900}
+@media(max-width:1100px){.lab-config,.result-grid{grid-template-columns:1fr}.compact-task-list{grid-template-columns:1fr 1fr}}
+
+
+/* ===== Projection vs. personal lab typography ===== */
+#p4a,#p4b,#p4c{font-size:18px;overflow:hidden}
+#p4a .head,#p4b .head,#p4c .head{gap:3px}
+#p4a .head h1,#p4b .head h1,#p4c .head h1{font-size:30px}
+#p4a .lead,#p4b .lead,#p4c .lead{font-size:18px}
+#p4a h2,#p4b h2,#p4c h2{font-size:26px}
+#p4a h3,#p4b h3,#p4c h3{font-size:21px}
+#p4a .eyebrow,#p4b .eyebrow,#p4c .eyebrow,
+#p4a .note,#p4b .note,#p4c .note,
+#p4a label,#p4b label,#p4c label,
+#p4a button,#p4b button,#p4c button,
+#p4a select,#p4b select,#p4c select{font-size:18px}
+#p4a .promptbox{font-size:18px;line-height:1.45;min-height:170px!important;max-height:220px!important;overflow-y:auto}
+#p4a .compact-task-list{grid-template-columns:repeat(5,1fr);gap:8px}
+#p4a .task-btn{font-size:18px;min-height:72px;padding:9px 10px}
+#p4a .lab-config{gap:16px}
+#p4a .box,#p4b .box,#p4c .box{padding:14px 16px}
+#p4b .answer-projection{font-size:18px;line-height:1.5;height:48vh;min-height:0;max-height:none;overflow-y:auto;overscroll-behavior:contain}
+#p4b .metric-card .k{font-size:18px}
+#p4b .metric-card .v{font-size:24px}
+#p4c .history-table-wrap{border:2px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+#p4c .history-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:18px}
+#p4c .history-table th,#p4c .history-table td{padding:8px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#p4c .history-table th{background:var(--surface-2);font-weight:900}
+#p4c .history-table tbody tr{cursor:pointer}
+#p4c .history-table tbody tr:hover,#p4c .history-table tbody tr.selected{background:var(--accent-bg)}
+#p4c .history-table th:nth-child(1){width:13%} #p4c .history-table th:nth-child(2){width:16%} #p4c .history-table th:nth-child(3){width:10%} #p4c .history-table th:nth-child(4){width:10%} #p4c .history-table th:nth-child(5){width:15%} #p4c .history-table th:nth-child(6){width:11%} #p4c .history-table th:nth-child(7){width:10%} #p4c .history-table th:nth-child(8){width:15%}
+#p4c .history-pager{margin-top:8px}
+#p4c .history-detail{display:grid;grid-template-columns:1fr 1fr;gap:14px;min-height:0;flex:1}
+#p4c .history-detail>div{min-height:0;display:flex;flex-direction:column}
+#p4c .history-detail h3{margin:0 0 5px}
+#p4c .detail-scroll{font-size:18px;line-height:1.5;white-space:pre-wrap;background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:12px;overflow-y:auto;overscroll-behavior:contain;min-height:0;height:25vh}
+
+
+/* ===== extended course pages ===== */
+.course-two{display:grid;grid-template-columns:1fr 1fr;gap:18px;min-height:0}
+.course-four{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;min-height:0}
+.flowline{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap}.flowstep{flex:1 1 150px;background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:5px;align-content:start}.flowstep b{font-size:26px}.arrow{display:grid;place-items:center;font-size:30px;color:var(--ink-2)}
+.reasoning-scale{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.reason-card{border:2px solid var(--line);border-radius:14px;background:var(--surface);padding:18px;display:grid;gap:7px}.reason-card.active{border-color:var(--accent);background:var(--accent-bg)}.reason-card .r{font-family:var(--mono);font-weight:700;color:var(--accent)}
+.recall-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.recall-card{background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:15px;display:grid;gap:4px}.recall-card b{font-size:25px}.recall-card span{color:var(--ink-2)}
+.platform-map{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:12px;align-items:stretch}.platform-node{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:20px;display:grid;gap:8px}.platform-node strong{font-size:30px}.platform-arrow{display:grid;place-items:center;font-size:32px;color:var(--accent)}
+.compare-table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:14px;overflow:hidden}.compare-table th,.compare-table td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;font-size:24px}.compare-table th{background:var(--surface-2);font-weight:900}
+.lab-page{font-size:18px;height:calc(100vh - 132px);overflow:hidden}.lab-page .head{margin-bottom:12px}.lab-page .head h1{font-size:34px;max-width:none}.lab-page .lead,.lab-page .note,.lab-page p,.lab-page label,.lab-page .tag{font-size:18px}.lab-page h2{font-size:27px}.lab-page h3{font-size:22px}.lab-page .btn,.lab-page input,.lab-page select,.lab-page textarea{font-size:18px}.lab-page .box{padding:14px}.lab-page .field{margin-bottom:8px}.lab-page .field label{font-size:18px}.lab-page .budget-pill{font-size:18px}
+.mm-layout{display:grid;grid-template-columns:.86fr 1.14fr;gap:16px;height:calc(100% - 92px);min-height:0}.mm-left,.mm-right{min-height:0;display:flex;flex-direction:column;gap:10px}.upload-zone{border:2px dashed var(--line);border-radius:12px;min-height:220px;flex:1;display:grid;place-items:center;background:var(--surface);overflow:hidden;position:relative}.upload-zone img{max-width:100%;max-height:100%;object-fit:contain}.upload-zone .empty{text-align:center;color:var(--ink-2);padding:20px}.scrollbox{overflow:auto;overscroll-behavior:contain;min-height:0}.mm-answer{flex:1;min-height:0;background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:14px;white-space:pre-wrap;overflow:auto;font-size:18px}
+.mini-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.mini-stat{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px}.mini-stat span{display:block;color:var(--ink-2);font-size:16px}.mini-stat b{font-family:var(--mono);font-size:18px}
+.tool-demo{display:grid;grid-template-columns:.95fr 1.05fr;gap:16px;height:calc(100% - 92px)}.tool-demo>div{min-height:0}.tool-result{height:100%;overflow:auto;white-space:pre-wrap;background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:14px}
+.groq-key{display:grid;grid-template-columns:1fr auto;gap:10px}.status-ok{color:var(--green);font-weight:900}.status-bad{color:var(--red);font-weight:900}.secret-note{background:var(--green-bg);color:var(--green);border-radius:10px;padding:10px 12px;font-weight:700}
+.challenge-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.challenge{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:17px;display:grid;gap:8px}.challenge select{padding:8px;border:2px solid var(--line);border-radius:9px;background:var(--surface)}
+.challenge-analysis{display:none;border-top:1px solid var(--line);padding-top:10px;margin-top:4px;gap:8px}
+.challenge-analysis.show{display:grid}
+.challenge-analysis .block{display:grid;grid-template-columns:110px 1fr;gap:10px;align-items:start}
+.challenge-analysis .label{font-weight:900;color:var(--ink)}
+.challenge-analysis .risk{color:var(--warn)}
+.challenge-analysis .fit{color:var(--local)}
+.challenge-analysis .verdict{font-weight:900;padding:6px 10px;border-radius:8px;background:var(--surface-2)}
+.challenge-analysis .verdict.best{color:var(--local);background:var(--local-bg)}
+.challenge-analysis .verdict.conditional{color:var(--accent);background:var(--accent-bg)}
+.challenge-analysis .verdict.risky{color:var(--warn);background:var(--warn-bg)}
+
+@media(max-width:1100px){.course-four,.recall-grid,.reasoning-scale{grid-template-columns:1fr 1fr}.platform-map{grid-template-columns:1fr}.platform-arrow{transform:rotate(90deg)}.mm-layout,.tool-demo,.course-two,.challenge-grid{grid-template-columns:1fr}.lab-page{height:auto;overflow:visible}}
+
+</style>
+</head>
+<body>
+<div class="login-overlay" id="loginOverlay">
+  <form class="login-card" id="loginForm">
+    <div class="eyebrow">LLM MODEL LAB</div>
+    <h1>輸入課程通關資訊</h1>
+    <p><b>課程代碼</b>只用來驗證是否可以進入；登入後系統以「<b>姓名 + 組別</b>」作為你的課堂帳號辨識鍵。</p>
+    <input id="courseCodeInput" autocomplete="off" maxlength="32" placeholder="課程代碼" required>
+    <input id="nameInput" autocomplete="name" maxlength="40" placeholder="姓名" required>
+    <input id="groupInput" inputmode="numeric" type="number" min="1" max="4" step="1" placeholder="組別" required>
+    <div class="login-error" id="loginError"></div>
+    <button class="btn" style="width:100%" type="submit">進入課程</button>
+    <p class="note">第一次使用這組「姓名 + 組別」會自動建立帳號；之後用相同資料登入會接續原本的 Token 額度與使用紀錄。</p>
+  </form>
+</div>
+<div class="shell">
+<header class="top">
+  <div class="brandrow">
+    <div class="brand">大型語言模型選型實驗室</div>
+    <div class="userbox"><span id="userName">—</span><span class="budget-pill">剩餘 <span id="budgetTop">— tokens</span></span><button class="btn secondary" id="logoutBtn" style="padding:5px 9px">切換使用者</button></div>
+  </div>
+  <div class="course-nav" aria-label="課程導覽">
+    <nav class="main-nav" aria-label="課程大主題">
+      <button data-group="foundation" aria-selected="true"><span class="chapter-no">01</span>選型基礎</button>
+      <button data-group="openai"><span class="chapter-no">02</span>OpenAI 實作</button>
+      <button data-group="multimodal"><span class="chapter-no">03</span>多模態</button>
+      <button data-group="tools"><span class="chapter-no">04</span>Tool 與回顧</button>
+      <button data-group="platform"><span class="chapter-no">05</span>平台與 Groq</button>
+      <button data-group="reliability"><span class="chapter-no">06</span>可靠性與挑戰</button>
+    </nav>
+    <div class="sub-nav-wrap">
+      <nav class="sub-nav active" data-group="foundation" aria-label="選型基礎子頁籤">
+        <button data-tab="p1" aria-selected="true">1.1 為什麼要選模型</button>
+        <button data-tab="p1b">1.2 模型差異不只比智力</button>
+        <button data-tab="p2">1.3 模型不是越大越好</button>
+        <button data-tab="p3">1.4 品質 × 速度 × 成本</button>
+        <button data-tab="p3b">1.5 任務複雜度 </button>
+        <button data-tab="p3c">1.6 Reasoning Effort</button>
+      </nav>
+      <nav class="sub-nav" data-group="openai" aria-label="OpenAI 實作子頁籤">
+        <button data-tab="p4a">2.1 任務與模型</button>
+        <button data-tab="p4b">2.2 結果與效能</button>
+        <button data-tab="p4c">2.3 歷史紀錄</button>
+      </nav>
+      <nav class="sub-nav" data-group="multimodal" aria-label="多模態子頁籤">
+        <button data-tab="p5a">3.1 多模態模型</button>
+        <button data-tab="p5b">3.2 多模態 Lab</button>
+        <button data-tab="p5c">3.3 多模態選型</button>
+      </nav>
+      <nav class="sub-nav" data-group="tools" aria-label="Tool 與回顧子頁籤">
+        <button data-tab="p6a">4.1 Tool / API</button>
+        <button data-tab="p6b">4.2 即時資料 Lab</button>
+        <button data-tab="p7">4.3 選型 Recall</button>
+      </nav>
+      <nav class="sub-nav" data-group="platform" aria-label="平台與 Groq 子頁籤">
+        <button data-tab="p8">5.1 Model ≠ Platform</button>
+        <button data-tab="p9">5.2 Groq / OpenRouter</button>
+        <button data-tab="p10a">5.3 Groq Token</button>
+        <button data-tab="p10b">5.4 Groq Lab</button>
+      </nav>
+      <nav class="sub-nav" data-group="reliability" aria-label="可靠性與挑戰子頁籤">
+        <button data-tab="p11">6.1 幻覺與可靠性</button>
+        <button data-tab="p12">6.2 Selection Challenge</button>
+      </nav>
+    </div>
+  </div>
+</header>
+<main>
+<section id="p1" class="panel active">
+  <div class="head"><div class="eyebrow">01A / WHY SO MANY MODELS</div><h1>為什麼不選最強的就好？</h1></div>
+  <div class="g3 grid">
+    <article class="card"><span class="tag">能力</span><div class="big">同一題，難度不同</div><p>分類與抽取通常不需要最高階推理；跨文件判斷、策略分析才需要更強能力。</p></article>
+    <article class="card"><span class="tag">速度</span><div class="big">有些工作不能等</div><p>即時客服、語音互動與大量批次任務，速度可能比「多想 20 秒」更重要。</p></article>
+    <article class="card"><span class="tag">成本</span><div class="big">每次呼叫都在花錢</div><p>同樣一萬次任務，單次差一點點錢，放大後就可能形成顯著的月成本差異。</p></article>
+  </div>
+  <div class="result-callout" style="margin-top:20px"><b>任務真的需要最強模型嗎？</b><span>模型選型的目標不是找出「最強」，而是找出「足以完成工作、成本合理、速度可接受」的模型。</span></div>
+</section>
+<section id="p1b" class="panel">
+  <div class="head"><div class="eyebrow">01B / MORE THAN INTELLIGENCE</div><h1>模型差異，不只有聰不聰明</h1><p class="lead">實際工作還會受到資料型態、工具能力與部署方式影響，因此同一個能力級距也可能有不同模型。</p></div>
+  <div class="g3 grid">
+    <article class="card"><span class="tag">輸入資料</span><div class="big">文字不是唯一輸入</div><p>圖片、文件、聲音、影片需要不同多模態能力；不是每個模型都支援相同輸入。</p></article>
+    <article class="card"><span class="tag">工具能力</span><div class="big">回答 vs. 做事</div><p>有些場景只要文字生成，有些需要搜尋、函式呼叫、程式執行或 Agent 能力。</p></article>
+    <article class="card"><span class="tag">部署與治理</span><div class="big">雲端、地端、混合</div><p>資料敏感度、法規與網路環境，也會限制模型可以在哪裡執行。</p></article>
+  </div>
+  <div class="scenario-row" style="margin-top:20px">
+    <div class="scenario"><b>選一個工作看看</b><select id="whyScenario"><option value="classify">每天 10,000 則留言分類</option><option value="report">分析三份供應商提案</option><option value="vision">讀取設備照片與標籤</option><option value="agent">跨系統查資料並完成工作</option></select></div>
+    <div class="result-callout"><span class="mono" id="whyLabel">大量、規則明確</span><b id="whyResult">優先看速度與成本，不一定需要最大模型。</b><span id="whyReason">先用最小可行模型驗證準確率，再升級。</span></div>
+  </div>
+</section>
+<section id="p2" class="panel">
+  <div class="head"><div class="eyebrow">02 / EMPLOYEE ANALOGY</div><h1>模型不是越大越好</h1></div>
+  <div class="g3 grid">
+    <article class="card employee"><span class="tag" style="background:var(--green-bg);color:var(--green)">Luna｜行政助理</span><div class="big">快、便宜、適合規則明確</div><ul><li>分類、抽取</li><li>格式整理</li><li>大量摘要</li><li>高流量重複任務</li></ul><div class="salary">API 級距：低成本</div></article>
+    <article class="card employee"><span class="tag" style="background:var(--blue-bg);color:var(--blue)">Sol｜資深專員</span><div class="big">需要判斷力的日常工作</div><ul><li>文件比較</li><li>報告撰寫</li><li>一般分析</li><li>中度複雜推理</li></ul><div class="salary">API 級距：中成本</div></article>
+    <article class="card employee"><span class="tag" style="background:var(--purple-bg);color:var(--purple)">Astra｜專家顧問</span><div class="big">高難度、多限制、答錯代價高</div><ul><li>複雜推理</li><li>深度研究</li><li>大型文件工作</li><li>困難 Agent 任務</li></ul><div class="salary">API 級距：高成本</div></article>
+  </div>
+  <div class="result-callout" style="margin-top:20px"><b>管理原則：讓最便宜、最快，且「足以完成工作」的模型先做。</b><span>只有當品質不足時，再往更高能力級距升級，而不是所有任務一律使用最強模型。</span></div>
+</section>
+<section id="p3" class="panel">
+  <div class="head"><div class="eyebrow">03A / TRADE-OFF</div><h1>模型選型是在平衡：品質 × 速度 × 成本</h1><p class="lead">一般趨勢是：<b>能力提高，通常成本也提高；複雜推理還可能拉長等待時間。</b>這裡看的是相對關係，不是固定 SLA。</p></div>
+  <div class="triangle-wrap">
+    <div class="controlbox">
+      <div><b>選擇能力級距</b></div>
+      <div class="level-dots"><button data-level="0" class="active">Luna</button><button data-level="1">Sol</button><button data-level="2">Astra</button></div>
+      <div class="card" style="padding:16px"><div class="mono accent" id="tradeModel">GPT-6 Luna</div><div class="big" id="tradeRole">大量、規則明確任務</div><p id="tradeText">先用較低成本快速完成；若品質不夠，再升級。</p></div>
+      <div class="result-callout"><b>能力 ↑ → 通常成本 ↑、等待時間 ↑</b><span>但不是每個任務都會因此得到更好的商業結果。</span></div>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">相對指標</h2>
+      <div class="meters">
+        <div class="meter"><b>能力上限</b><div class="track"><div class="fill q" id="qualityBar"></div></div><span class="mono" id="qualityVal"></span></div>
+        <div class="meter"><b>回應速度</b><div class="track"><div class="fill s" id="speedBar"></div></div><span class="mono" id="speedVal"></span></div>
+        <div class="meter"><b>單次成本</b><div class="track"><div class="fill c" id="costBar"></div></div><span class="mono" id="costVal"></span></div>
+      </div>
+      <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+      <h3>以 1,000 input + 500 output tokens 示意</h3>
+      <div class="stats" style="grid-template-columns:repeat(3,1fr);margin-top:12px"><div class="stat"><div class="k">Luna</div><div class="v">$0.00035</div></div><div class="stat"><div class="k">Sol</div><div class="v">$0.007</div></div><div class="stat"><div class="k">Astra</div><div class="v">$0.035</div></div></div>
+    </div>
+  </div>
+</section>
+<section id="p3b" class="panel">
+  <div class="head"><div class="eyebrow">03B / TASK COMPLEXITY</div><h1>任務複雜度</h1><p class="lead">這是本課程使用的<b>教學量尺</b>，不是產業通用標準。判斷四件事：步驟數、規則是否明確、需要整合多少資訊、是否存在衝突或取捨。</p></div>
+  <div class="complexity-grid" id="complexityCards">
+    <article class="complexity-card" data-cx="1"><div class="lvl">LEVEL 1</div><h3>直接執行</h3><p>單一步驟、規則明確、幾乎不需判斷。</p><div class="eg">例：把留言分成詢價／客訴。</div></article>
+    <article class="complexity-card active" data-cx="2"><div class="lvl">LEVEL 2</div><h3>整理轉換</h3><p>2–3 個明確步驟，輸出格式固定。</p><div class="eg">例：Email 擷取公司、姓名、日期。</div></article>
+    <article class="complexity-card" data-cx="3"><div class="lvl">LEVEL 3</div><h3>比較判斷</h3><p>整合多項資訊，依清楚條件做選擇。</p><div class="eg">例：依 5 個條件比較供應商。</div></article>
+    <article class="complexity-card" data-cx="4"><div class="lvl">LEVEL 4</div><h3>多步推理</h3><p>條件互相影響，存在例外、衝突與取捨。</p><div class="eg">例：插急單後判斷延誤與替代方案。</div></article>
+    <article class="complexity-card" data-cx="5"><div class="lvl">LEVEL 5</div><h3>開放策略</h3><p>目標不完全明確，資訊不完整，需要權衡風險。</p><div class="eg">例：規劃企業 AI 導入路線與優先順序。</div></article>
+  </div>
+  <div class="complexity-detail" style="margin-top:18px">
+    <div class="controlbox">
+      <div class="range-row"><label><span>任務複雜度</span><span id="complexityLabel">2 / 5</span></label><input id="complexity" type="range" min="1" max="5" value="2"></div>
+      <div class="result-callout"><span>模型建議</span><b id="tradeAdvice">Level 2 通常先從 Luna 測試。</b></div>
+    </div>
+    <div class="card"><div class="mono accent" id="cxTitle">LEVEL 2｜整理轉換</div><h2 id="cxCase" style="margin:6px 0">從 Email 擷取公司、聯絡人、需求與日期</h2><p id="cxWhy">規則清楚、欄位固定，需要少量理解，但不需要複雜取捨。</p></div>
+  </div>
+</section>
+
+<section id="p3c" class="panel">
+  <div class="head"><div class="eyebrow">03C / REASONING EFFORT</div><h1>同一個模型，也可以決定「要想多久」</h1><p class="lead"><b>Model 決定請誰做；Reasoning Effort 決定要他投入多少推理資源。</b>推理越深不代表每一題都更好，通常也會增加等待時間與 Token。</p></div>
+  <div class="reasoning-scale" id="reasoningScale">
+    <article class="reason-card" data-r="low"><div class="r">LOW</div><h3>快速判斷</h3><p>分類、擷取、改寫、規則明確。</p></article>
+    <article class="reason-card active" data-r="medium"><div class="r">MEDIUM</div><h3>一般分析</h3><p>比較資料、一般商務判斷。</p></article>
+    <article class="reason-card" data-r="high"><div class="r">HIGH</div><h3>仔細推理</h3><p>多條件決策、除錯、規劃。</p></article>
+    <article class="reason-card" data-r="xhigh"><div class="r">XHIGH / MAX</div><h3>高難度問題</h3><p>只有實測證明值得時才提高。</p></article>
+  </div>
+  <div class="course-two" style="margin-top:18px">
+    <div class="controlbox"><b>用同一個 Sol 做同一題</b><div class="field"><label>任務</label><select id="reasonTask"><option value="extract">從 Email 擷取姓名、公司與日期</option><option value="supplier">依價格、交期、維保、保固選供應商</option><option value="schedule">急單插單後分析對其他訂單的影響</option></select></div><div class="field"><label>Reasoning Effort</label><select id="reasonEffortDemo"><option>low</option><option selected>medium</option><option>high</option><option>xhigh</option></select></div></div>
+    <div class="result-callout"><span id="reasonDemoLevel" class="mono">MEDIUM</span><b id="reasonDemoTitle">一般分析：合理起點</b><span id="reasonDemoText">先取得足夠的判斷品質，再用實際結果決定是否需要提高或降低推理深度。</span></div>
+  </div>
+</section>
+
+<section id="p4a" class="panel lab-page">
+  <div class="head"><div class="eyebrow">04A / TEXT MODEL LAB</div><h1>動手試試看</h1><p class="lead">切換任務難度，再調整模型與參數。</p></div>
+  <div class="lab-config">
+    <div class="box">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:16px"><h3 style="margin:0">任務</h3><span class="budget-pill">剩餘 <span id="quotaRemain">—</span> / <span id="quotaTotal">—</span> tokens</span></div>
+      <div class="compact-task-list" id="taskList" style="margin-top:12px"></div>
+      <div class="task-head" style="margin-top:14px"><div><div class="eyebrow" id="taskEyebrow">任務 1</div><h2 id="taskTitle">簡單分類</h2><p id="taskDesc" style="margin:4px 0;color:var(--ink-2)"></p></div><div class="question-nav" id="questionNav"></div></div>
+      <div class="promptbox" id="promptText" style="min-height:210px;max-height:280px;overflow:auto"></div>
+    </div>
+    <div class="box">
+      <h3>模型設定</h3>
+      <div class="field"><label>Model</label><select id="modelSelect"><option value="luna">GPT-6 Luna</option><option value="sol">GPT-6 Sol</option><option value="astra">GPT-6 Astra</option></select></div>
+      <div class="field"><label>Reasoning effort</label><select id="reasoningSelect"><option value="none">none</option><option value="low">low</option><option value="medium" selected>medium</option><option value="high">high</option><option value="xhigh">xhigh</option></select></div>
+      <p class="note" id="paramHint">Luna / Sol 支援 none；Astra 會自動限制為 low 以上。模型會自行決定完成回答所需的輸出長度。</p>
+      <div class="lab-actions"><button class="btn secondary" id="reshuffleBtn">重新抽題</button><button class="btn" id="runBtn">Run Model →</button></div>
+    </div>
+  </div>
+</section>
+<section id="p4b" class="panel lab-page">
+  <div class="head"><div class="eyebrow">04B / RESULT & PERFORMANCE</div><h1>答案之外，模型到底花了多少資源？</h1><p class="lead">比較答案品質時，也同時看 Token、總耗時與 TTFT。外部 API 任務會把工具等待時間一起算進整體耗時。</p></div>
+  <div class="result-grid">
+    <div><div class="metric-grid">
+      <div class="metric-card"><div class="k">Total latency</div><div class="v" id="stLatency">—</div></div>
+      <div class="metric-card"><div class="k">TTFT</div><div class="v" id="stTtft">—</div></div>
+      <div class="metric-card"><div class="k">Input Token</div><div class="v" id="stInput">—</div></div>
+      <div class="metric-card"><div class="k">Output Token</div><div class="v" id="stOutput">—</div></div>
+      <div class="metric-card" style="grid-column:1/-1"><div class="k">Remaining</div><div class="v" id="stRemain">—</div></div>
+    </div><div class="note" id="lastRunMeta" style="margin-top:14px">尚未執行任何任務。</div><button class="btn secondary" id="backToLabBtn" style="margin-top:16px">← 回到任務與模型</button></div>
+    <div><h3 style="margin-top:0">模型回答</h3><div class="answer-projection" id="answerBox">尚未執行。</div></div>
+  </div>
+</section>
+<section id="p4c" class="panel lab-page">
+  <div class="head"><div class="eyebrow">04C / RUN HISTORY</div><h1>我的所有執行紀錄</h1><p class="lead">每筆紀錄都由 D1 保存。每頁固定顯示 5 筆，不需要上下拖曳；可以用上一頁／下一頁查看完整歷史。</p></div>
+  <div class="history-table-wrap">
+    <table class="history-table">
+      <thead><tr><th>時間</th><th>Level / 任務</th><th>模型</th><th>Reasoning</th><th>Tokens</th><th>Latency</th><th>TTFT</th><th>成本</th></tr></thead>
+      <tbody id="historyList"><tr><td colspan="8">尚未載入紀錄。</td></tr></tbody>
+    </table>
+  </div>
+  <div class="history-pager"><button class="btn secondary" id="historyPrev">← 上一頁</button><div class="mono" id="historyPage">1 / 1</div><button class="btn secondary" id="historyNext">下一頁 →</button></div>
+  <div class="history-detail">
+    <div><h3>原始提問</h3><div class="detail-scroll" id="historyPrompt">點選上方紀錄查看完整提問。</div></div>
+    <div><h3>AI 回覆</h3><div class="detail-scroll" id="historyResponse">點選上方紀錄查看完整回覆。</div></div>
+  </div>
+</section>
+<section id="p5a" class="panel">
+  <div class="head"><div class="eyebrow">05A / MULTIMODAL</div><h1>資料不只有文字：先看「輸入長什麼樣」</h1><p class="lead">支援圖片不代表每一種視覺任務都一樣強。照片理解、OCR、圖表推理、精準量測，其實是不同問題。</p></div>
+  <div class="course-four">
+    <article class="card"><span class="tag">照片</span><div class="big">場景理解</div><p>看人物、環境、物件與可觀察現象。</p></article>
+    <article class="card"><span class="tag">表單 / 發票</span><div class="big">資訊擷取</div><p>讀取小字、欄位、表格與結構。</p></article>
+    <article class="card"><span class="tag">圖表</span><div class="big">視覺＋推理</div><p>不只讀數字，還要比較趨勢與異常。</p></article>
+    <article class="card"><span class="tag">圖片＋文字</span><div class="big">多模態決策</div><p>把畫面資訊與限制條件一起判斷。</p></article>
+  </div>
+  <div class="result-callout" style="margin-top:18px"><b>「模型看得到」≠「適合拿來做精準量測」。</b><span>條碼、毫米量測、大量 OCR、物件精準計數，往往需要專門工具，而不是只換更大的 LLM。</span></div>
+</section>
+
+<section id="p5b" class="panel lab-page">
+  <div class="head"><div class="eyebrow">05B / MULTIMODAL LAB</div><h1>自己上傳圖片，實際測模型「看」的能力</h1><p class="lead">可上傳自己的圖片，也可以載入內建圖表案例。圖片只用於本次請求，不寫進歷史資料庫。</p></div>
+  <div class="mm-layout">
+    <div class="mm-left">
+      <div class="box" style="display:grid;gap:8px"><div class="field"><label>任務類型</label><select id="mmTask"><option value="scene">場景理解：看到了什麼？哪些不能確定？</option><option value="extract">資訊擷取：從圖片找指定欄位</option><option value="chart">圖表推理：趨勢、異常與證據</option><option value="decision">圖片＋限制條件：做出判斷</option></select></div><div class="groq-key"><input id="mmFile" type="file" accept="image/*"><button class="btn secondary" id="loadChartBtn">載入示範圖表</button></div></div>
+      <div class="upload-zone" id="mmPreview"><div class="empty">上傳 JPG / PNG / WEBP<br>或按「載入示範圖表」</div></div>
+    </div>
+    <div class="mm-right">
+      <div class="box"><div class="course-two"><div class="field"><label>Model</label><select id="mmModel"><option value="luna">GPT-6 Luna</option><option value="sol" selected>GPT-6 Sol</option><option value="astra">GPT-6 Astra</option></select></div><div class="field"><label>Reasoning</label><select id="mmReason"><option value="low">low</option><option value="medium" selected>medium</option><option value="high">high</option></select></div></div><div class="field"><label>Prompt</label><textarea id="mmPrompt" rows="4">請描述圖片中的主要內容，列出 5 個可以直接確認的觀察，以及 3 個不能只靠圖片確認的資訊。不要把推測寫成事實。</textarea></div><button class="btn" id="mmRun">Run Multimodal →</button></div>
+      <div class="mini-stats"><div class="mini-stat"><span>Input</span><b id="mmInput">—</b></div><div class="mini-stat"><span>Output</span><b id="mmOutput">—</b></div><div class="mini-stat"><span>TTFT</span><b id="mmTtft">—</b></div><div class="mini-stat"><span>Latency</span><b id="mmLatency">—</b></div><div class="mini-stat"><span>Cost TWD</span><b id="mmCost">—</b></div></div>
+      <div class="mm-answer" id="mmAnswer">尚未執行。</div>
+    </div>
+  </div>
+</section>
+
+<section id="p5c" class="panel">
+  <div class="head"><div class="eyebrow">05C / MULTIMODAL SELECTION</div><h1>不是看到圖片，就一定要用多模態 LLM</h1><p class="lead">先問「我要理解什麼？」再決定要用 LLM、OCR、Computer Vision，還是專用感測與辨識工具。</p></div>
+  <table class="compare-table"><thead><tr><th>場景</th><th>較合理的能力</th><th>選型提醒</th></tr></thead><tbody>
+    <tr><td>客服上傳商品破損照片</td><td>Vision + Text</td><td>適合描述與初步分類，但高價退款仍需規則／人工。</td></tr>
+    <tr><td>3,000 張發票擷取統編與金額</td><td>OCR / Document AI + LLM</td><td>大量固定欄位，不一定要每張都用最高階模型。</td></tr>
+    <tr><td>營收圖表找趨勢與異常</td><td>Vision + Reasoning</td><td>要區分「圖中證據」和「原因假設」。</td></tr>
+    <tr><td>零件是否為 10.02 mm</td><td>量測設備 / Machine Vision</td><td>一般多模態 LLM 不適合作為精密量測依據。</td></tr>
+  </tbody></table>
+</section>
+
+<section id="p6a" class="panel">
+  <div class="head"><div class="eyebrow">06A / TOOL & API</div><h1>模型不知道「現在發生什麼」，怎麼辦？</h1><p class="lead">LLM 負責理解與判斷；API、搜尋、資料庫負責提供真實世界與企業內部的最新資料。</p></div>
+  <div class="flowline"><div class="flowstep"><span class="tag">1</span><b>使用者問題</b><span>「哪一天最適合辦戶外活動？」</span></div><div class="arrow">→</div><div class="flowstep"><span class="tag">2</span><b>外部 API</b><span>取得未來 7 天天氣。</span></div><div class="arrow">→</div><div class="flowstep"><span class="tag">3</span><b>LLM 判斷</b><span>根據降雨、溫度與限制比較。</span></div><div class="arrow">→</div><div class="flowstep"><span class="tag">4</span><b>可追溯答案</b><span>知道資料從哪裡來，也知道如何判斷。</span></div></div>
+  <div class="course-two" style="margin-top:18px"><article class="card"><div class="big">沒有 Tool</div><p>模型只能使用上下文與既有知識；遇到即時天氣、庫存、訂單狀態時可能猜測或拒答。</p></article><article class="card"><div class="big">有 Tool / API</div><p>先查真實資料，再交給模型推理。此時系統能力來自「模型＋工具」，不只是模型本身。</p></article></div>
+</section>
+
+<section id="p6b" class="panel lab-page">
+  <div class="head"><div class="eyebrow">06B / LIVE DATA LAB</div><h1>讓模型先查即時天氣，再做決策</h1><p class="lead">這次 Total latency 包含外部 API 取得資料與模型生成；TTFT 也從按下 Run 開始計算。</p></div>
+  <div class="tool-demo">
+    <div class="box"><div class="field"><label>Model</label><select id="toolModel"><option value="luna">GPT-6 Luna</option><option value="sol" selected>GPT-6 Sol</option><option value="astra">GPT-6 Astra</option></select></div><div class="field"><label>Reasoning</label><select id="toolReason"><option value="low">low</option><option value="medium" selected>medium</option><option value="high">high</option></select></div><div class="field"><label>決策題目</label><textarea id="toolPrompt" rows="8">你要安排台北戶外拍攝，請根據系統提供的未來 7 天天氣資料挑選最適合的一天。條件：1. 降雨機率越低越好；2. 最高溫不超過 31°C；3. 若兩天接近，優先選較涼的一天。請列出前兩名與判斷理由。</textarea></div><button class="btn" id="toolRun">取得即時資料並執行 →</button></div>
+    <div style="display:flex;flex-direction:column;gap:8px;min-height:0"><div class="mini-stats"><div class="mini-stat"><span>Input</span><b id="toolInput">—</b></div><div class="mini-stat"><span>Output</span><b id="toolOutput">—</b></div><div class="mini-stat"><span>TTFT</span><b id="toolTtft">—</b></div><div class="mini-stat"><span>Latency</span><b id="toolLatency">—</b></div><div class="mini-stat"><span>Cost TWD</span><b id="toolCost">—</b></div></div><div class="tool-result" id="toolAnswer">尚未執行。</div></div>
+  </div>
+</section>
+
+<section id="p7" class="panel">
+  <div class="head"><div class="eyebrow">07 / RECALL</div><h1>挑選大型語言模型要注意什麼？</h1></div>
+  <div class="recall-grid"><div class="recall-card"><b>① 任務</b><span>分類、摘要、比較、策略？</span></div><div class="recall-card"><b>② 複雜度</b><span>Level 1–5？</span></div><div class="recall-card"><b>③ Reasoning</b><span>需要想多深？</span></div><div class="recall-card"><b>④ 品質風險</b><span>答錯的代價？</span></div><div class="recall-card"><b>⑤ 速度</b><span>1 秒、5 秒、1 分鐘？</span></div><div class="recall-card"><b>⑥ 成本</b><span>一次多少？一天幾次？</span></div><div class="recall-card"><b>⑦ 資料型態</b><span>文字、圖片、文件、語音？</span></div><div class="recall-card"><b>⑧ Tool / 部署</b><span>要即時資料？資料能出去嗎？</span></div></div>
+  <div class="result-callout" style="margin-top:16px"><b>還少一個問題：同一個模型，要在哪個平台跑？</b><span>Provider / Inference Platform 也會改變速度、價格、可用模型與工具能力。</span></div>
+</section>
+
+<section id="p8" class="panel">
+  <div class="head"><div class="eyebrow">08 / MODEL ≠ PLATFORM</div><h1>模型、推論平台、Router，不是同一件事</h1></div>
+  <div class="platform-map"><div class="platform-node"><span class="tag">MODEL</span><strong>GPT-OSS / Qwen / Llama</strong><span>像「菜色」：真正負責理解、生成與推理的模型。</span></div><div class="platform-arrow">→</div><div class="platform-node"><span class="tag">INFERENCE PLATFORM</span><strong>Groq</strong><span>像「廚房」：強調模型在哪裡、以什麼效能執行。</span></div><div class="platform-arrow">→</div><div class="platform-node"><span class="tag">ROUTER</span><strong>OpenRouter</strong><span>像「外送平台」：用統一入口連接很多模型與 Provider。</span></div></div>
+</section>
+
+<section id="p9" class="panel">
+  <div class="head"><div class="eyebrow">09 / GROQ & OPENROUTER</div><h1>兩個都是「平台」，但解決的問題不同</h1><p class="lead">Groq 適合用來體驗高速推論；OpenRouter 適合理解多模型、多 Provider 與 routing 的平台概念。</p></div>
+  <table class="compare-table"><thead><tr><th></th><th>Groq</th><th>OpenRouter</th></tr></thead><tbody><tr><td>核心定位</td><td>高速模型推論平台</td><td>多模型／多 Provider 統一入口</td></tr><tr><td>課堂觀察</td><td>TTFT、Tokens/s、Latency、Cost</td><td>模型選擇、Provider 選擇、Fallback / Routing</td></tr><tr><td>API</td><td>OpenAI-compatible</td><td>OpenAI-compatible</td></tr><tr><td>這堂課</td><td><b>實際申請 Token 並操作</b></td><td>先理解概念與使用情境</td></tr></tbody></table>
+  <div class="course-two" style="margin-top:14px"><a class="btn" href="https://console.groq.com/keys" target="_blank" rel="noopener">開啟 Groq API Keys ↗</a><a class="btn secondary" href="https://openrouter.ai/developers" target="_blank" rel="noopener">查看 OpenRouter Developers ↗</a></div>
+</section>
+
+<section id="p10a" class="panel lab-page">
+  <div class="head"><div class="eyebrow">10A / GROQ BYOK</div><h1>申請自己的 Groq Token，帶回 Lab 測試</h1></div>
+  <div class="course-two">
+    <div class="box"><h3>步驟</h3><ol><li>開啟 Groq Console</li><li>建立 API Key</li><li>複製後貼到右側</li><li>按「測試 Token」取得課堂可用模型</li></ol><a class="btn secondary" href="https://console.groq.com/keys" target="_blank" rel="noopener">Groq Console ↗</a></div>
+    <div class="box"><div class="field"><label>Groq API Token</label><div class="groq-key"><input id="groqKey" type="password" autocomplete="off" placeholder="gsk_..."><button id="toggleGroqKey" class="btn secondary">顯示</button></div></div><div class="secret-note">🔒 Token不會儲存 關閉分頁後 sessionStorage 會消失。</div><div style="display:flex;align-items:center;gap:12px;margin-top:14px"><button class="btn" id="testGroqKey">測試 Token</button><span id="groqKeyStatus">尚未測試</span></div></div>
+  </div>
+</section>
+
+<section id="p10b" class="panel lab-page">
+  <div class="head"><div class="eyebrow">10B / GROQ LAB</div><h1>同一個任務，換 Provider 再跑一次</h1><p class="lead">使用自己的 Groq Token。建議重跑 Level 3–5 題目，再回歷史紀錄比較 OpenAI 與 Groq 的 TTFT、Latency、Token 與成本。</p></div>
+  <div class="tool-demo">
+    <div class="box"><div class="field"><label>Groq Model</label><select id="groqModel"><option value="">請先測試 Token</option></select></div><div class="field"><label>Reasoning</label><select id="groqReason"><option value="low">low</option><option value="medium" selected>medium</option><option value="high">high</option></select></div><div class="field"><label>Prompt</label><textarea id="groqPrompt" rows="9">根據以下條件選擇供應商：A 價格最低但交期 21 天、無台灣維保；B 價格高 8%，交期 10 天、有台灣維保、保固 3 年；C 價格高 3%，交期 14 天、維保需跨國、保固 2 年。公司要求交期不得超過 14 天，且設備停機風險高。請先排除不符合硬性條件者，再比較剩餘方案並提出建議。</textarea></div><button class="btn" id="groqRun">Run on Groq →</button></div>
+    <div style="display:flex;flex-direction:column;gap:8px;min-height:0"><div class="mini-stats"><div class="mini-stat"><span>Input</span><b id="groqInput">—</b></div><div class="mini-stat"><span>Output</span><b id="groqOutput">—</b></div><div class="mini-stat"><span>TTFT</span><b id="groqTtft">—</b></div><div class="mini-stat"><span>Latency</span><b id="groqLatency">—</b></div><div class="mini-stat"><span>Cost TWD</span><b id="groqCost">—</b></div></div><div class="tool-result" id="groqAnswer">尚未執行。</div></div>
+  </div>
+</section>
+
+<section id="p11" class="panel">
+  <div class="head"><div class="eyebrow">11 / RELIABILITY</div><h1>模型越強，還是可能會答錯！！</h1><p class="lead">可靠性不是只靠升級模型。先分辨錯誤發生在哪一層，再決定要換模型、換資料、加 Tool，還是加人工覆核。</p></div>
+  <div class="course-four"><article class="card"><span class="tag">不知道</span><div class="big">幻覺</div><p>沒有資料卻產生看似合理答案。</p></article><article class="card"><span class="tag">資料</span><div class="big">Garbage in</div><p>輸入資料錯，模型再強也可能得到錯結論。</p></article><article class="card"><span class="tag">推理</span><div class="big">漏條件</div><p>複雜限制下漏掉例外或互相衝突的條件。</p></article><article class="card"><span class="tag">Tool</span><div class="big">外部失敗</div><p>API 過期、查詢失敗、資料庫回傳不完整。</p></article></div>
+  <div class="result-callout" style="margin-top:18px"><b>可靠系統 = 模型 + 正確資料 + Tool + 驗證規則 + 適當人工覆核</b><span>答錯代價越高，越不能只靠「換成最強模型」。</span></div>
+</section>
+
+<section id="p12" class="panel">
+  <div class="head">
+    <div class="eyebrow">06.2 / MODEL SELECTION CHALLENGE</div>
+    <h1>聽完後，你會怎麼選</h1>
+    <p class="lead">先選你的方案。選擇後立即查看分析、適用前提與可能風險。</p>
+  </div>
+  <div class="challenge-grid">
+    <article class="challenge" data-case="A">
+      <b>CASE A｜每天 30,000 封客服 Email 分類</b>
+      <span>要求 3 秒內完成，大部分規則明確。</span>
+      <select class="challengePick">
+        <option value="">你的選擇…</option>
+        <option value="a1">Luna / Low / 無 Tool</option>
+        <option value="a2">Sol / High / 無 Tool</option>
+        <option value="a3">Astra / High</option>
+      </select>
+      <div class="challenge-analysis"></div>
+    </article>
+
+    <article class="challenge" data-case="B">
+      <b>CASE B｜設備照片＋維修 SOP 判斷異常</b>
+      <span>需要看照片，也要依文件原則提出排查順序。</span>
+      <select class="challengePick">
+        <option value="">你的選擇…</option>
+        <option value="b1">Vision + Sol / Medium</option>
+        <option value="b2">只用 Luna 純文字</option>
+        <option value="b3">只用 OCR</option>
+      </select>
+      <div class="challenge-analysis"></div>
+    </article>
+
+    <article class="challenge" data-case="C">
+      <b>CASE C｜ERP＋庫存＋機台狀態安排急單</b>
+      <span>資料每天變動，需要分析對其他訂單的影響。</span>
+      <select class="challengePick">
+        <option value="">你的選擇…</option>
+        <option value="c1">API / Tool + Sol / High + 人工確認</option>
+        <option value="c2">Astra 不接任何資料</option>
+        <option value="c3">Luna 直接猜</option>
+      </select>
+      <div class="challenge-analysis"></div>
+    </article>
+
+    <article class="challenge" data-case="D">
+      <b>CASE D｜高流量即時分類</b>
+      <span>回答很短，但每秒大量請求，速度與成本很重要。</span>
+      <select class="challengePick">
+        <option value="">你的選擇…</option>
+        <option value="d1">小模型 + 高速 Provider</option>
+        <option value="d2">Astra / max reasoning</option>
+        <option value="d3">每筆人工處理</option>
+      </select>
+      <div class="challenge-analysis"></div>
+    </article>
+  </div>
+</section>
+
+
+</main>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+// 部署後請改成你的 Cloudflare Worker URL，例如：https://llm-model-lab.your-subdomain.workers.dev
+const API_BASE = window.LLM_LAB_API_BASE || "https://llm-model-lab.haozengtw.workers.dev";
+const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
+let token = localStorage.getItem('llm_lab_token') || ''; let me = null;
+const tasks = [
+ {id:'level1', level:1, title:'直接執行｜簡單分類', modelHint:'', desc:'', qs:[
+  '請將下列客戶留言分類為「詢價 / 客訴 / 售後 / 其他」，只回傳分類與一句理由：\n\n「您好，我們公司想採購 80 台設備，請問大量採購是否有專案價格？」',
+  '請將下列客戶留言分類為「詢價 / 客訴 / 售後 / 其他」，只回傳分類與一句理由：\n\n「上週收到的機器開機不到十分鐘就會自動重啟，已經影響現場生產。」',
+  '請將下列客戶留言分類為「詢價 / 客訴 / 售後 / 其他」，只回傳分類與一句理由：\n\n「兩個月前購買的產品需要更換耗材，請問維修中心可以直接處理嗎？」',
+  '請將下列客戶留言分類為「詢價 / 客訴 / 售後 / 其他」，只回傳分類與一句理由：\n\n「我們下週會參加你們的研討會，想確認停車資訊。」',
+  '請將下列客戶留言分類為「詢價 / 客訴 / 售後 / 其他」，只回傳分類與一句理由：\n\n「官網寫三天出貨，但我已等九天仍沒有物流資訊，也沒有人回覆。」'
+ ]},
+ {id:'level2', level:2, title:'整理轉換｜摘要與擷取', modelHint:'', desc:'', qs:[
+  `請從以下 Email 擷取「公司、聯絡人、需求、日期」，用 JSON 回傳。\n\n主旨：詢問企業版導入\n您好，我是星河製造的林怡君。我們預計 11 月 18 日前完成內部知識庫 PoC，希望了解 50 人使用的企業方案與教育訓練費用。`,
+  `請將以下內容整理成三個重點，每點不超過 45 字：\n\n某零售品牌發現客服量快速增加，但多數問題高度重複。測試後發現，高階模型對固定規則問題沒有明顯提升，卻增加成本。團隊因此把固定規則交給低成本模型，需要例外判斷時才升級較強模型；退款與敏感個資則交由人工覆核。`,
+  `請從以下 Email 擷取「公司、聯絡人、需求、日期」，用 JSON 回傳。\n\n您好，我是宏泰食品研發部陳冠宇，想安排 10/22 下午進行線上會議，討論配方文件的 AI 搜尋與權限控管，若可行也想先申請兩週測試。`,
+  `請將以下內容整理成「問題、原因、改善」三欄：\n\n某食品公司一開始把所有歷史檔案直接放入知識庫，回答品質不穩。檢查後發現來源資料有重複、缺欄與版本衝突。團隊先統一欄位、版本與日期，再由領域專家標記正式依據，重新測試後即使使用較小模型也得到更一致答案。`,
+  `請從以下 Email 擷取「公司、聯絡人、需求、日期」，用 JSON 回傳。\n\n我是昇岳精密資訊課李志豪，想請問 10/15 是否方便到廠說明地端 LLM 部署？目前約有 30 位工程人員會使用，資料不可離開公司網路。`
+ ]},
+ {id:'level3', level:3, title:'比較判斷｜條件式選擇', modelHint:'', desc:'', qs:[
+  `根據以下條件選出最適合供應商，先逐項檢核硬性條件，再比較剩餘方案。\n需求：預算≤45萬、交期≤30天、台灣維保、效能≥85、保固希望≥2年。\nA：42萬 / 28天 / 有 / 88 / 1年\nB：46萬 / 21天 / 有 / 92 / 3年\nC：44萬 / 35天 / 有 / 91 / 3年\nD：43萬 / 29天 / 無 / 90 / 3年。\n請說明淘汰順序、最後選擇與仍存在的取捨。`,
+  `公司每天有 2 萬次模型請求：80% 是固定分類與抽取、15% 是文件比較、5% 是複雜推理。\n方案 A：全部用 Astra；方案 B：全部用 Luna；方案 C：Luna 起始，低信心或複雜任務升級 Sol/Astra。\n請依品質、速度、成本三個面向比較，並提出建議。`,
+  `請依五個條件選雲端供應商：月成本≤8萬、SLA≥99.9%、中文、亞洲資料區、14天內上線。\nA：7.5萬 / 99.9% / 中文 / 亞洲 / 10天\nB：6.8萬 / 99.5% / 中文 / 亞洲 / 7天\nC：8.2萬 / 99.95% / 中文 / 亞洲 / 12天\nD：7.9萬 / 99.9% / 英文 / 亞洲 / 8天。\n請先區分硬性條件與偏好，再作決策。`,
+  `三個導入方案：A 一次上客服、知識庫、Agent，70萬/12週；B 先做知識庫與客服分類，38萬/6週；C 僅員工 Chatbot，20萬/3週。\n目標：三個月內落地、風險可控、預算80萬。請比較三案並提出首選與備選。`
+ ]},
+ {id:'level4', level:4, title:'多步推理｜衝突與例外', modelHint:'', desc:'', qs:[
+  `某工廠今天 14:00 發生以下狀況：\n1. A 機台預計 18:00 完成急單 X，客戶要求明早 09:00 出貨。\n2. A 機台突然停機，最快 17:00 才能恢復。\n3. B 機台可生產 X，但正在做 Y，切換產品需清機 45 分鐘。\n4. Y 交期是後天下午，但若今天停工，明天需加班 3 小時。\n5. C 機台有空，但良率比 A/B 低 6%，X 不允許重工率超過 3%。\n請找出衝突，提出至少兩個方案，分析對 X、Y、加班與品質風險的影響；資訊不足處必須指出。`,
+  `你是營運主管。A 客戶要求提前兩天交貨；B 願延後一天但不可拆單；C 是最高等級客戶且剛發生品質客訴。現場只有兩條產線，其中一條明早保養 4 小時。\n請先建立決策優先級，再提出兩個排程方案、各自風險，以及還缺哪些資料才能定案。`,
+  `客服中心今天退款案件暴增 40%、系統回覆延遲、VIP 投訴上升。規定：AI 不可直接退款；一般 FAQ 可自動回答；金額超過 5,000 元必須人工覆核。\n請設計完整分流流程，說明哪些交給快速模型、哪些升級高階模型、哪些必須人工；同時說明錯分的風險與補救機制。`,
+  `某專案剩 6 週、預算只剩 35 萬。需求同時包含知識庫、客服分類、ERP 查詢與自動寫入。資安規定 ERP 寫入一定要人工批准，但管理層要求至少交付兩個可上線成果。\n請提出分階段範圍，說明捨棄什麼、保留什麼、依據為何，並列出最大的三個風險。`
+ ]},
+ {id:'tool_weather', level:5, title:'工具＋策略｜即時資料決策', modelHint:'', desc:'', qs:[
+  `你要安排台北戶外拍攝。系統會提供未來 7 天天氣 API 資料。\n限制：降雨機率最重要；最高溫最好≤31°C；風速過高會影響燈具；客戶只有週二、週四、週六可配合。\n請：①先排除不符合日期；②為剩餘日期建立排序；③選首選與備選；④說明如果天氣預報可信度不足時的備案。`,
+  `請根據系統提供的未來 7 天天氣 API 資料，替 14:00–17:00 的戶外企業活動做決策。\n條件：參加者有長者；降雨會造成設備風險；高溫會增加醫療風險；改期成本高，但安全優先。\n請提出「照常／改期／轉室內」三種方案的判斷門檻，再依即時資料提出建議與備案；不可只挑最低降雨的一天。`,
+  `請根據系統提供的未來 7 天天氣 API 資料，安排一堂需要 3 小時步行的戶外課程。\n目標同時包含：安全、舒適度、最低取消機率。若沒有任何一天同時滿足條件，允許改為「不安排」。\n請建立你自己的評估權重、列出前兩名、指出資料限制，最後解釋為何你的選擇優於其他日期。`,
+  `你負責一場不可輕易取消的戶外拍攝。系統提供 7 天天氣資料，但預報可能變動。\n請不要只給日期，而要提出一個「決策策略」：何時確認、什麼條件觸發備案、首選/備選日期如何排序，以及在資料不確定時如何避免過度自信。`
+ ]}
+];
+let taskSelections={}, currentTask=0,currentQ=0;
+function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+function makeSelections(){taskSelections={}; tasks.forEach(t=>{const n=3+Math.floor(Math.random()*3);taskSelections[t.id]=shuffle(t.qs).slice(0,n)});currentQ=0;renderTask()}
+function renderTaskList(){ $('#taskList').innerHTML=tasks.map((t,i)=>`<button class="task-btn ${i===currentTask?'active':''}" data-ti="${i}"><b>LEVEL ${t.level}｜${t.title}</b><small>${t.modelHint} · ${t.desc}</small></button>`).join(''); $$('.task-btn').forEach(b=>b.onclick=()=>{currentTask=+b.dataset.ti;currentQ=0;renderTaskList();renderTask()}) }
+function renderTask(){const t=tasks[currentTask], qs=taskSelections[t.id]||[];$('#taskEyebrow').textContent=`LEVEL ${t.level} · ${t.modelHint}`;$('#taskTitle').textContent=t.title;$('#taskDesc').textContent=t.desc;$('#questionNav').innerHTML=qs.map((_,i)=>`<button class="${i===currentQ?'active':''}" data-qi="${i}">題目 ${i+1}</button>`).join(''); $$('#questionNav button').forEach(b=>b.onclick=()=>{currentQ=+b.dataset.qi;renderTask()});$('#promptText').textContent=qs[currentQ]||'';resetResult()}
+function resetResult(){['stLatency','stTtft','stInput','stOutput'].forEach(id=>$('#'+id).textContent='—');if(me)$('#stRemain').textContent=Number(me.remaining_tokens||0).toLocaleString();else $('#stRemain').textContent='—';$('#lastRunMeta').textContent='每次執行都會記錄模型、參數、Input / Output Token、總耗時與 TTFT。';$('#answerBox').textContent='尚未執行。';$('#answerBox').classList.remove('loading')}
+const PANEL_GROUPS={
+  p1:'foundation',p1b:'foundation',p2:'foundation',p3:'foundation',p3b:'foundation',p3c:'foundation',
+  p4a:'openai',p4b:'openai',p4c:'openai',
+  p5a:'multimodal',p5b:'multimodal',p5c:'multimodal',
+  p6a:'tools',p6b:'tools',p7:'tools',
+  p8:'platform',p9:'platform',p10a:'platform',p10b:'platform',
+  p11:'reliability',p12:'reliability'
+};
+const GROUP_FIRST={
+  foundation:'p1',openai:'p4a',multimodal:'p5a',tools:'p6a',platform:'p8',reliability:'p11'
+};
+function setGroup(group){
+  $$('.main-nav button').forEach(x=>x.setAttribute('aria-selected',x.dataset.group===group?'true':'false'));
+  $$('.sub-nav').forEach(x=>x.classList.toggle('active',x.dataset.group===group));
+}
+function openPanel(id){
+  const group=PANEL_GROUPS[id]||'foundation';
+  setGroup(group);
+  $$('.sub-nav button').forEach(x=>x.setAttribute('aria-selected',x.dataset.tab===id?'true':'false'));
+  $$('.panel').forEach(p=>p.classList.toggle('active',p.id===id));
+  if(id==='p4c')loadHistory();
+}
+$$('.main-nav button').forEach(b=>b.onclick=()=>openPanel(GROUP_FIRST[b.dataset.group]));
+$$('.sub-nav button').forEach(b=>b.onclick=()=>openPanel(b.dataset.tab));
+const why={classify:['大量、規則明確','優先看速度與成本，不一定需要最大模型。','先用最小可行模型驗證準確率，再升級。'],report:['需要比較與判斷','品質比極致速度重要，通常從中高階模型開始。','先定義評分標準，再比較 Sol 與 Astra 是否真的有品質差。'],vision:['多模態輸入','先確認模型是否支援圖片，再談能力級距。','「模型很強」不代表它能讀你提供的媒體格式。'],agent:['多步驟與工具使用','除了模型能力，還要看 function calling / tools 與可靠性。','真正成本包含模型、工具呼叫與失敗重試。']};
+$('#whyScenario').onchange=e=>{const v=why[e.target.value];$('#whyLabel').textContent=v[0];$('#whyResult').textContent=v[1];$('#whyReason').textContent=v[2]};
+const trade=[
+ {name:'GPT-6 Luna',role:'大量、規則明確任務',text:'先用較低成本快速完成；若品質不夠，再升級。',q:45,s:92,c:2,cv:'低'},
+ {name:'GPT-6 Sol',role:'需要分析與判斷的工作',text:'在能力、速度與成本間取得較平衡的級距。',q:78,s:65,c:20,cv:'中'},
+ {name:'GPT-6 Astra',role:'高難度、多限制任務',text:'把高成本留給真正需要高能力的少數任務。',q:100,s:40,c:100,cv:'高'}];
+let tradeLevel=0;function drawTrade(){const x=trade[tradeLevel];$('#tradeModel').textContent=x.name;$('#tradeRole').textContent=x.role;$('#tradeText').textContent=x.text;$('#qualityBar').style.width=x.q+'%';$('#speedBar').style.width=x.s+'%';$('#costBar').style.width=x.c+'%';$('#qualityVal').textContent=x.q<60?'基礎':x.q<90?'高':'最高';$('#speedVal').textContent=x.s>80?'快':x.s>50?'中':'較慢';$('#costVal').textContent=x.cv;$$('.level-dots button').forEach((b,i)=>b.classList.toggle('active',i===tradeLevel))}
+const complexities={
+  1:{title:'LEVEL 1｜直接執行',case:'把客戶留言分成「詢價／客訴／售後／其他」',why:'單一步驟、規則清楚、幾乎沒有例外或取捨。',model:'Luna 明顯足夠'},
+  2:{title:'LEVEL 2｜整理轉換',case:'從 Email 擷取公司、聯絡人、需求與日期',why:'規則清楚、欄位固定，需要少量理解，但不需要複雜取捨。',model:'Luna 通常足夠'},
+  3:{title:'LEVEL 3｜比較判斷',case:'根據價格、交期、維保、效能與保固比較供應商',why:'要整合多項資訊並依條件做選擇，但評估規則仍然明確。',model:'Luna / Sol 開始有差異'},
+  4:{title:'LEVEL 4｜多步推理',case:'插入一張急單後，判斷會延誤誰、影響什麼、有哪些替代方案',why:'多個條件互相影響，而且可能出現例外、衝突與取捨。',model:'Sol 優勢開始明顯'},
+  5:{title:'LEVEL 5｜工具＋開放策略',case:'結合即時外部資料、多重限制與不確定性做決策',why:'需要工具取得最新資料，再處理目標衝突、資訊不完整與備案，沒有唯一答案。',model:'Sol / Astra 值得比較'}
+};
+function drawAdvice(){const n=+$('#complexity').value,c=complexities[n];$('#complexityLabel').textContent=n+' / 5';$('#tradeAdvice').textContent=`Level ${n}：${c.model}`;$('#cxTitle').textContent=c.title;$('#cxCase').textContent=c.case;$('#cxWhy').textContent=c.why;$$('.complexity-card').forEach(el=>el.classList.toggle('active',+el.dataset.cx===n))}
+$$('.level-dots button').forEach(b=>b.onclick=()=>{tradeLevel=+b.dataset.level;drawTrade()});$('#complexity').oninput=drawAdvice;$$('.complexity-card').forEach(c=>c.onclick=()=>{$('#complexity').value=c.dataset.cx;drawAdvice()});drawTrade();drawAdvice();
+function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;setTimeout(()=>t.hidden=true,3500)}
+async function api(path,opts={}){const headers={'Content-Type':'application/json',...(opts.headers||{})};if(token)headers.Authorization='Bearer '+token;const r=await fetch(API_BASE+path,{...opts,headers});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||`HTTP ${r.status}`);return data}
+function updateMe(data){me=data;$('#userName').textContent=`${data.display_name||'—'} · 第 ${data.group_no??'—'} 組`;const remain=Number(data.remaining_tokens??0),quota=Number(data.token_quota??0);$('#budgetTop').textContent=remain.toLocaleString()+' tokens';$('#quotaRemain').textContent=remain.toLocaleString();$('#quotaTotal').textContent=quota.toLocaleString();if($('#quotaFill'))$('#quotaFill').style.width=(quota?Math.min(100,Math.max(0,(1-remain/quota)*100)):0)+'%';$('#stRemain').textContent=remain.toLocaleString()}
+async function tryResume(){if(!token)return;try{const d=await api('/api/me');updateMe(d);$('#loginOverlay').hidden=true}catch{localStorage.removeItem('llm_lab_token');token=''}}
+$('#loginForm').onsubmit=async e=>{e.preventDefault();$('#loginError').textContent='';const course_code=$('#courseCodeInput').value.trim();const name=$('#nameInput').value.trim();const group_no=$('#groupInput').value.trim();if(!course_code||!name||!group_no)return;try{const d=await api('/api/login',{method:'POST',body:JSON.stringify({course_code,name,group_no})});token=d.token;localStorage.setItem('llm_lab_token',token);updateMe(d.user);$('#loginOverlay').hidden=true}catch(err){$('#loginError').textContent=err.message}}
+$('#logoutBtn').onclick=()=>{token='';me=null;localStorage.removeItem('llm_lab_token');$('#loginOverlay').hidden=false;$('#nameInput').focus()}
+$('#reshuffleBtn').onclick=()=>{makeSelections();toast('已重新抽出本輪題目')};
+$('#modelSelect').onchange=()=>{const isA=$('#modelSelect').value==='astra';const none=$('#reasoningSelect').querySelector('option[value="none"]');none.disabled=isA;if(isA&&$('#reasoningSelect').value==='none')$('#reasoningSelect').value='low';$('#paramHint').textContent=isA?'Astra 最低使用 low reasoning。':'Luna / Sol 可使用 none，適合觀察推理成本差異。'};
+$('#runBtn').onclick=async()=>{if(!token){$('#loginOverlay').hidden=false;return}const prompt=$('#promptText').textContent;if(!prompt)return;const btn=$('#runBtn');btn.disabled=true;$('#answerBox').textContent='模型執行中…';const started=performance.now();const model=$('#modelSelect').value,reasoning_effort=$('#reasoningSelect').value;try{const d=await api('/api/chat',{method:'POST',body:JSON.stringify({model,reasoning_effort,input:prompt,task_id:tasks[currentTask].id})});const localMs=performance.now()-started;$('#answerBox').textContent=d.output||'(沒有文字輸出)';$('#stLatency').textContent=(d.latency_ms??localMs).toFixed(0)+' ms';$('#stTtft').textContent=d.ttft_ms==null?'—':Number(d.ttft_ms).toFixed(0)+' ms';$('#stInput').textContent=(d.usage?.input_tokens??0).toLocaleString();$('#stOutput').textContent=(d.usage?.output_tokens??0).toLocaleString();const toolText=d.tool_used?` · Tool=${d.tool_used}`:'';$('#lastRunMeta').textContent=`${d.model_label} · reasoning=${d.parameters?.reasoning_effort??reasoning_effort}${toolText} · API cost $${Number(d.cost_usd||0).toFixed(6)} ≈ NT$${Number(d.cost_twd||0).toFixed(3)}`;updateMe(d.user);openPanel('p4b');toast(`本次使用 ${(Number(d.usage?.input_tokens||0)+Number(d.usage?.output_tokens||0)).toLocaleString()} tokens`)}catch(err){$('#answerBox').textContent='錯誤：'+err.message;toast(err.message);try{updateMe(await api('/api/me'))}catch{}}finally{btn.disabled=false}}
+$('#backToLabBtn').onclick=()=>openPanel('p4a');
+let historyRows=[],historyPage=0,selectedHistoryId=null;const HISTORY_PAGE_SIZE=5;
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function taskLabel(id){const i=tasks.findIndex(t=>t.id===id);return i>=0?`L${i+1} ${tasks[i].title}`:(id||'—')}
+function selectHistory(id){selectedHistoryId=id;const r=historyRows.find(x=>Number(x.id)===Number(id));if(!r)return;$('#historyPrompt').textContent=r.prompt_text||'(舊紀錄未保存原始提問)';$('#historyResponse').textContent=r.response_text||'(舊紀錄未保存 AI 回覆)';$$('#historyList tr[data-id]').forEach(tr=>tr.classList.toggle('selected',Number(tr.dataset.id)===Number(id)))}
+function renderHistory(){const total=Math.max(1,Math.ceil(historyRows.length/HISTORY_PAGE_SIZE));historyPage=Math.min(Math.max(0,historyPage),total-1);const rows=historyRows.slice(historyPage*HISTORY_PAGE_SIZE,(historyPage+1)*HISTORY_PAGE_SIZE);$('#historyList').innerHTML=rows.length?rows.map(r=>`<tr data-id="${r.id}"><td>${esc(String(r.created_at||'').replace('T',' ').slice(0,16))}</td><td title="${esc(taskLabel(r.task_id))}">${esc(taskLabel(r.task_id))}</td><td>${esc((r.model_key||r.model_id||'—').toUpperCase())}</td><td>${esc(r.reasoning_effort||'—')}</td><td>${Number(r.input_tokens||0).toLocaleString()} / ${Number(r.output_tokens||0).toLocaleString()} / ${Number(r.total_tokens||0).toLocaleString()}</td><td>${r.latency_ms==null?'—':Number(r.latency_ms).toLocaleString()+' ms'}</td><td>${r.ttft_ms==null?'—':Number(r.ttft_ms).toLocaleString()+' ms'}</td><td title="USD $${Number(r.cost_usd||0).toFixed(6)}">$${Number(r.cost_usd||0).toFixed(5)}<br>≈ NT$${Number(r.cost_twd||0).toFixed(3)}</td></tr>`).join(''):'<tr><td colspan="8">目前還沒有執行紀錄。</td></tr>';$$('#historyList tr[data-id]').forEach(tr=>tr.onclick=()=>selectHistory(tr.dataset.id));$('#historyPage').textContent=`${historyPage+1} / ${total}`;$('#historyPrev').disabled=historyPage<=0;$('#historyNext').disabled=historyPage>=total-1;if(rows.length){const wanted=rows.some(r=>Number(r.id)===Number(selectedHistoryId))?selectedHistoryId:rows[0].id;selectHistory(wanted)}else{$('#historyPrompt').textContent='尚無紀錄。';$('#historyResponse').textContent='尚無紀錄。'}}
+async function loadHistory(){if(!token)return;try{const d=await api('/api/history?limit=100');historyRows=d.items||[];historyPage=0;selectedHistoryId=historyRows[0]?.id??null;renderHistory()}catch(e){$('#historyList').innerHTML=`<tr><td colspan="8">載入失敗：${esc(e.message)}</td></tr>`}}
+$('#historyPrev').onclick=()=>{historyPage--;selectedHistoryId=null;renderHistory()};$('#historyNext').onclick=()=>{historyPage++;selectedHistoryId=null;renderHistory()};
+
+// ===== 03C Reasoning Effort =====
+const reasonCopy={low:['快速處理：先求足夠','適合規則明確、錯誤成本低的工作。'],medium:['一般分析：合理起點','先取得足夠的判斷品質，再用實際結果決定是否提高或降低。'],high:['仔細推理：多條件問題','適合需要比較、規劃、檢查條件衝突的任務。'],xhigh:['高投入：只在值得時使用','高難度任務才考慮；一定要用品質提升證明額外 Token / Latency 值得。']};
+function drawReasonDemo(){const e=$('#reasonEffortDemo')?.value||'medium',c=reasonCopy[e];if(!c)return;$('#reasonDemoLevel').textContent=e.toUpperCase();$('#reasonDemoTitle').textContent=c[0];$('#reasonDemoText').textContent=c[1];$$('#reasoningScale .reason-card').forEach(x=>x.classList.toggle('active',x.dataset.r===e))}
+if($('#reasonEffortDemo'))$('#reasonEffortDemo').onchange=drawReasonDemo;$$('#reasoningScale .reason-card').forEach(x=>x.onclick=()=>{$('#reasonEffortDemo').value=x.dataset.r;drawReasonDemo()});drawReasonDemo();
+
+// ===== 05B Multimodal Lab =====
+let mmImageData='';
+const mmPrompts={scene:'請描述圖片中的主要內容，列出 5 個可以直接確認的觀察，以及 3 個不能只靠圖片確認的資訊。不要把推測寫成事實。',extract:'請從圖片中擷取重要資訊，依「名稱／日期／金額或數值／聯絡資訊／其他關鍵欄位」整理。看不清楚的欄位標示「無法確認」，不要猜。',chart:'請分析這張圖表：1. 說明整體趨勢；2. 找出至少兩個值得注意的異常或轉折；3. 明確區分「圖表能直接證明」與「需要額外資料才能驗證的原因假設」。',decision:'請先描述圖片中可確認的資訊，再根據以下限制做判斷：安全性優先、不能把不確定資訊當成事實；若證據不足，列出需要補充的資料。'};
+function setMmImage(data,name='image'){mmImageData=data;$('#mmPreview').innerHTML=`<img src="${data}" alt="${esc(name)}">`}
+if($('#mmFile'))$('#mmFile').onchange=()=>{const f=$('#mmFile').files?.[0];if(!f)return;if(f.size>5*1024*1024){toast('圖片請小於 5MB');$('#mmFile').value='';return}const r=new FileReader();r.onload=()=>setMmImage(r.result,f.name);r.readAsDataURL(f)};
+if($('#mmTask'))$('#mmTask').onchange=()=>{$('#mmPrompt').value=mmPrompts[$('#mmTask').value]};
+if($('#loadChartBtn'))$('#loadChartBtn').onclick=()=>{const c=document.createElement('canvas');c.width=900;c.height=520;const x=c.getContext('2d');x.fillStyle='white';x.fillRect(0,0,c.width,c.height);x.fillStyle='#15252B';x.font='bold 28px sans-serif';x.fillText('2026 月度不良率 (%)',55,48);x.strokeStyle='#46575D';x.lineWidth=2;x.beginPath();x.moveTo(80,90);x.lineTo(80,440);x.lineTo(850,440);x.stroke();const pts=[[110,350],[220,330],[330,315],[440,170],[550,300],[660,285],[770,260]];x.strokeStyle='#2B67A8';x.lineWidth=5;x.beginPath();pts.forEach((p,i)=>i?x.lineTo(...p):x.moveTo(...p));x.stroke();x.fillStyle='#B96F0E';pts.forEach(p=>{x.beginPath();x.arc(p[0],p[1],7,0,Math.PI*2);x.fill()});x.fillStyle='#46575D';x.font='20px sans-serif';['Jan','Feb','Mar','Apr','May','Jun','Jul'].forEach((m,i)=>x.fillText(m,95+i*110,475));['5.0','4.0','3.0','2.0','1.0'].forEach((v,i)=>x.fillText(v,18,105+i*84));setMmImage(c.toDataURL('image/png'),'demo chart');$('#mmTask').value='chart';$('#mmPrompt').value=mmPrompts.chart};
+if($('#mmRun'))$('#mmRun').onclick=async()=>{if(!mmImageData)return toast('請先上傳圖片或載入示範圖表');const b=$('#mmRun');b.disabled=true;$('#mmAnswer').textContent='多模態模型執行中…';try{const d=await api('/api/multimodal',{method:'POST',body:JSON.stringify({model:$('#mmModel').value,reasoning_effort:$('#mmReason').value,prompt:$('#mmPrompt').value,image_data:mmImageData,task_id:'mm_'+$('#mmTask').value})});$('#mmAnswer').textContent=d.output||'(沒有輸出)';$('#mmInput').textContent=Number(d.usage?.input_tokens||0).toLocaleString();$('#mmOutput').textContent=Number(d.usage?.output_tokens||0).toLocaleString();$('#mmTtft').textContent=d.ttft_ms==null?'—':d.ttft_ms+' ms';$('#mmLatency').textContent=d.latency_ms+' ms';$('#mmCost').textContent='NT$'+Number(d.cost_twd||0).toFixed(3);updateMe(d.user)}catch(e){$('#mmAnswer').textContent='錯誤：'+e.message}finally{b.disabled=false}};
+
+// ===== 06B Tool/API Lab =====
+if($('#toolRun'))$('#toolRun').onclick=async()=>{const b=$('#toolRun');b.disabled=true;$('#toolAnswer').textContent='先取得 Open-Meteo 即時資料，再交給模型分析…';try{const d=await api('/api/chat',{method:'POST',body:JSON.stringify({model:$('#toolModel').value,reasoning_effort:$('#toolReason').value,input:$('#toolPrompt').value,task_id:'tool_weather'})});$('#toolAnswer').textContent=d.output||'(沒有輸出)';$('#toolInput').textContent=Number(d.usage?.input_tokens||0).toLocaleString();$('#toolOutput').textContent=Number(d.usage?.output_tokens||0).toLocaleString();$('#toolTtft').textContent=d.ttft_ms==null?'—':d.ttft_ms+' ms';$('#toolLatency').textContent=d.latency_ms+' ms';$('#toolCost').textContent='NT$'+Number(d.cost_twd||0).toFixed(3);updateMe(d.user)}catch(e){$('#toolAnswer').textContent='錯誤：'+e.message}finally{b.disabled=false}};
+
+// ===== Groq BYOK =====
+let groqModels=[];const savedGroq=sessionStorage.getItem('llm_lab_groq_key')||'';if($('#groqKey'))$('#groqKey').value=savedGroq;
+if($('#toggleGroqKey'))$('#toggleGroqKey').onclick=()=>{const i=$('#groqKey');i.type=i.type==='password'?'text':'password';$('#toggleGroqKey').textContent=i.type==='password'?'顯示':'隱藏'};
+async function groqApi(path,opts={}){const key=$('#groqKey')?.value.trim()||sessionStorage.getItem('llm_lab_groq_key')||'';if(!key)throw new Error('請先輸入 Groq API Token');const headers={'Content-Type':'application/json','X-Groq-Api-Key':key,...(opts.headers||{})};if(token)headers.Authorization='Bearer '+token;const r=await fetch(API_BASE+path,{...opts,headers});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`HTTP ${r.status}`);return d}
+function fillGroqModels(items){groqModels=items||[];$('#groqModel').innerHTML=groqModels.length?groqModels.map(m=>`<option value="${esc(m.id)}">${esc(m.label||m.id)}</option>`).join(''):'<option value="">沒有找到課堂支援模型</option>'}
+if($('#testGroqKey'))$('#testGroqKey').onclick=async()=>{const s=$('#groqKeyStatus');s.className='';s.textContent='測試中…';try{const d=await groqApi('/api/groq/models');sessionStorage.setItem('llm_lab_groq_key',$('#groqKey').value.trim());fillGroqModels(d.models);s.textContent=`✓ Token 可用，找到 ${d.models.length} 個課堂模型`;s.className='status-ok'}catch(e){sessionStorage.removeItem('llm_lab_groq_key');s.textContent='✕ '+e.message;s.className='status-bad'}};
+if($('#groqRun'))$('#groqRun').onclick=async()=>{if(!$('#groqModel').value)return toast('請先到 10A 測試 Groq Token');const b=$('#groqRun');b.disabled=true;$('#groqAnswer').textContent='Groq 模型執行中…';try{const d=await groqApi('/api/groq/chat',{method:'POST',body:JSON.stringify({model:$('#groqModel').value,reasoning_effort:$('#groqReason').value,input:$('#groqPrompt').value,task_id:'groq_compare'})});$('#groqAnswer').textContent=d.output||'(沒有輸出)';$('#groqInput').textContent=Number(d.usage?.input_tokens||0).toLocaleString();$('#groqOutput').textContent=Number(d.usage?.output_tokens||0).toLocaleString();$('#groqTtft').textContent=d.ttft_ms==null?'—':d.ttft_ms+' ms';$('#groqLatency').textContent=d.latency_ms+' ms';$('#groqCost').textContent=d.cost_twd==null?'—':'NT$'+Number(d.cost_twd).toFixed(3);toast('Groq 執行完成，可到 04C 看歷史紀錄')}catch(e){$('#groqAnswer').textContent='錯誤：'+e.message}finally{b.disabled=false}};
+
+
+const CHALLENGE_ANALYSIS={
+  a1:{
+    verdict:'最合理的方案',cls:'best',
+    analysis:'這是高量、規則明確、輸出短的分類任務。先用 Luna + Low 測試，可以把延遲與單次成本壓低。',
+    fit:'分類規則穩定、少量模糊案例可接受人工覆核，且實測品質已達標。',
+    risk:'若分類規則常變、留言需要跨上下文判斷，或錯分會直接影響退款／客訴處理，Luna 可能不夠穩定。'
+  },
+  a2:{
+    verdict:'可行，但可能過度配置',cls:'conditional',
+    analysis:'Sol / High 很可能能完成，而且複雜案例的穩定性可能更好；問題是這個任務本身並不需要大量推理。',
+    fit:'當錯分成本很高、規則有大量例外，或先前 Luna 評測未達標時。',
+    risk:'30,000 封／日會放大成本與 latency 差異，High reasoning 很可能增加不必要的 token 與等待時間。'
+  },
+  a3:{
+    verdict:'通常不是好的第一選擇',cls:'risky',
+    analysis:'Astra 能力很強，但這裡的主要瓶頸不是最高推理能力，而是大量、快速、低成本的穩定分類。',
+    fit:'只有當任務其實包含非常複雜的政策判斷、長上下文或高風險決策時才可能合理。',
+    risk:'成本與等待時間都可能顯著增加，且模型能力沒有被充分利用。'
+  },
+  b1:{
+    verdict:'最合理的方案',cls:'best',
+    analysis:'這個任務同時需要看照片、理解 SOP，並依文件規則排出檢查順序，因此需要 Vision + 文件脈絡 + Reasoning。',
+    fit:'照片資訊品質可接受、SOP 可取得，而且結果定位為維修輔助而不是自動下最終判定。',
+    risk:'設備照片可能看不到真正故障原因；若 SOP 過期或缺漏，模型可能產生合理但錯誤的排查建議。仍需技術人員確認。'
+  },
+  b2:{
+    verdict:'輸入能力不匹配',cls:'risky',
+    analysis:'若只用純文字，模型根本沒有看到設備照片；除非先有人把照片內容完整轉成文字，否則會失去關鍵訊息。',
+    fit:'若上游已有可靠的視覺系統先把照片轉成結構化描述，才可能改成純文字模型處理。',
+    risk:'人工描述可能漏掉細節；模型也可能根據不完整文字過度推論。'
+  },
+  b3:{
+    verdict:'只能完成部分任務',cls:'conditional',
+    analysis:'OCR 擅長讀文字，但設備異常判斷通常還需要物件、狀態、位置與 SOP 關聯；OCR 本身不是完整解法。',
+    fit:'若照片主要是儀表、告警碼、標籤或文字面板，OCR 可以是重要前處理。',
+    risk:'把「能讀出字」誤當成「理解故障」，會讓系統缺乏場景理解與推理能力。'
+  },
+  c1:{
+    verdict:'最合理的企業方案',cls:'best',
+    analysis:'排程依賴每天變動的 ERP、庫存與機台狀態，因此先透過 API / Tool 取得真實資料，再讓 Sol 做多條件推理，最後人工確認。',
+    fit:'企業資料源可透過 API 或資料庫取得，且有明確的排程規則與人工決策責任。',
+    risk:'API 資料延遲、欄位錯誤或排程規則不完整，都可能讓模型做出錯誤建議；人工確認不能省略。'
+  },
+  c2:{
+    verdict:'模型強，但資料不夠',cls:'risky',
+    analysis:'即使 Astra 推理能力更高，沒有即時 ERP、庫存與機台資料，仍無法可靠判斷今天能不能插單。',
+    fit:'如果所有必要資料已經完整放進上下文，才有討論模型能力的意義。',
+    risk:'容易產生看似完整、其實基於過期或假設資料的答案。這是典型「模型能力 ≠ 系統能力」。'
+  },
+  c3:{
+    verdict:'高風險選擇',cls:'risky',
+    analysis:'問題不是 Luna 一定不會推理，而是沒有接真實資料還要求直接猜。這會把企業決策建立在幻覺上。',
+    fit:'幾乎沒有合理的正式使用情境；最多只能做示範或假設性 brainstorming。',
+    risk:'可能造成交期、產能、庫存甚至客戶承諾錯誤。'
+  },
+  d1:{
+    verdict:'最合理的方向',cls:'best',
+    analysis:'任務輸出短、規則清楚，但流量高，所以重點是吞吐量、TTFT、單次成本與 rate limit，而不是最高推理能力。',
+    fit:'分類品質經評測達標，而且系統能批次處理或使用高速 inference provider。',
+    risk:'小模型可能在邊界案例失準；需要設置信心門檻或把模糊案例升級到較強模型。'
+  },
+  d2:{
+    verdict:'通常過度配置',cls:'risky',
+    analysis:'Astra + max reasoning 會把大量計算資源用在很短、很明確的分類工作上，與這個 workload 的主要需求相反。',
+    fit:'只有分類本身其實涉及高風險、多步政策推理時才可能成立。',
+    risk:'高延遲、高成本、較低吞吐量，可能直接讓即時服務無法承受尖峰。'
+  },
+  d3:{
+    verdict:'品質可能高，但無法擴展',cls:'conditional',
+    analysis:'人工可以處理例外，但若每一筆都人工處理，就失去自動化高流量分類的意義。',
+    fit:'適合當升級／覆核層，而不是所有請求的第一層。',
+    risk:'人力成本、排隊時間與一致性會成為新的瓶頸。'
+  }
+};
+function renderChallengeAnalysis(select){
+  const box=select.closest('.challenge').querySelector('.challenge-analysis');
+  const d=CHALLENGE_ANALYSIS[select.value];
+  if(!d){box.classList.remove('show');box.innerHTML='';return}
+  box.innerHTML=`<div class="verdict ${d.cls}">${d.verdict}</div>
+    <div class="block"><span class="label">選擇分析</span><span>${d.analysis}</span></div>
+    <div class="block"><span class="label fit">適用前提</span><span>${d.fit}</span></div>
+    <div class="block"><span class="label risk">可能風險</span><span>${d.risk}</span></div>`;
+  box.classList.add('show');
+}
+$$('.challengePick').forEach(s=>s.addEventListener('change',()=>renderChallengeAnalysis(s)));
+
+renderTaskList();makeSelections();tryResume();
+</script>
+</body>
+</html>
